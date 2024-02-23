@@ -1,11 +1,22 @@
+"use client";
 import Image from "next/image";
 import Button from "../ui/button";
 import { FcGoogle } from "react-icons/fc";
 import { AiFillGithub } from "react-icons/ai";
+import useRegisterModal from "@/hooks/useRegisterModal";
+import { useCallback } from "react";
+import RegisterModal from "../modals/register-modal";
 
 export default function Auth() {
+  const registerModal = useRegisterModal();
+
+  const onOpenRegisterModal = useCallback(() => {
+    registerModal.onOpen();
+  }, [registerModal]);
+
   return (
     <>
+      <RegisterModal />
       <div className=" grid grid-cols-1 md:grid-cols-2 gap-10 items-center h-screen">
         <Image
           src={"/images/logo.svg"}
@@ -50,7 +61,11 @@ export default function Auth() {
                 <p className=" mx-4">or</p>
                 <div className=" h-px bg-gray-700 w-1/2" />
               </div>
-              <Button label="Create account" fullWidth />
+              <Button
+                label="Create account"
+                fullWidth
+                onClick={onOpenRegisterModal}
+              />
               <div className=" text-[10px] text-gray-400">
                 By signing up, you agree to the
                 <span className=" text-sky-500 pl-1">Terms of Service</span> and
