@@ -27,11 +27,14 @@ export default function Modal({
           <button className=" p-1 border-stone-800 border rounded-sm text-white hover:opacity-70 transition w-fit">
             <X size={28} onClick={onClose} />
           </button>
-
-          <div className=" text-xl font-bold">Step 1 of 2</div>
+          {step && totalSteps && (
+            <div className=" text-xl font-bold">
+              Step {step} of {totalSteps}
+            </div>
+          )}
         </div>
         <div className="mt-4">{body}</div>
-        {footer && <div className=" mt-4"> {footer} </div>}
+        {footer && <div> {footer} </div>}
       </DialogContent>
     </Dialog>
   );

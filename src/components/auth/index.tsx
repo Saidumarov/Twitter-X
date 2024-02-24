@@ -6,17 +6,25 @@ import { AiFillGithub } from "react-icons/ai";
 import useRegisterModal from "@/hooks/useRegisterModal";
 import { useCallback } from "react";
 import RegisterModal from "../modals/register-modal";
+import useLoginModal from "@/hooks/useLoginModal";
+import LoginModal from "../modals/login-modal";
 
 export default function Auth() {
   const registerModal = useRegisterModal();
+  const loginModal = useLoginModal();
 
   const onOpenRegisterModal = useCallback(() => {
     registerModal.onOpen();
   }, [registerModal]);
 
+  const onOpenLoginModal = useCallback(() => {
+    loginModal.onOpen();
+  }, [loginModal]);
+
   return (
     <>
       <RegisterModal />
+      <LoginModal />
       <div className=" grid grid-cols-1 md:grid-cols-2 gap-10 items-center h-screen">
         <Image
           src={"/images/logo.svg"}
@@ -79,7 +87,12 @@ export default function Auth() {
             <h3 className=" font-medium text-xl mb-4">
               Already have an account?
             </h3>
-            <Button label={"Sign in"} fullWidth outline />
+            <Button
+              label={"Sign in"}
+              fullWidth
+              outline
+              onClick={onOpenLoginModal}
+            />
           </div>
         </div>
       </div>
