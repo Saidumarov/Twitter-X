@@ -3,11 +3,11 @@ import Image from "next/image";
 import Button from "../ui/button";
 import { FcGoogle } from "react-icons/fc";
 import { AiFillGithub } from "react-icons/ai";
-import useRegisterModal from "@/hooks/useRegisterModal";
 import { useCallback } from "react";
-import RegisterModal from "../modals/register-modal";
-import useLoginModal from "@/hooks/useLoginModal";
 import LoginModal from "../modals/login-modal";
+import useRegisterModal from "@/hooks/useRegisterModal";
+import useLoginModal from "@/hooks/useLoginModal";
+import RegisterModal from "../modals/register-modal";
 
 export default function Auth() {
   const registerModal = useRegisterModal();

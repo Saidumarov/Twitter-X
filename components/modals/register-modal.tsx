@@ -1,11 +1,11 @@
 "use client";
-import useRegisterModal from "@/hooks/useRegisterModal";
+
 import Modal from "../ui/modal";
 import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { registerStep1Schema, registerStep2Schema } from "@/lib/validation";
+import axios from "axios";
 import {
   Form,
   FormControl,
@@ -15,7 +15,11 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import Button from "../ui/button";
+import useRegisterModal from "@/hooks/useRegisterModal";
 import useLoginModal from "@/hooks/useLoginModal";
+import { registerStep1Schema, registerStep2Schema } from "@/lib/validation";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { AlertCircle } from "lucide-react";
 function RegisterModal() {
   const [step, setStep] = useState(1);
   const registerModal = useRegisterModal();
@@ -30,7 +34,7 @@ function RegisterModal() {
     step === 1 ? (
       <RegisterStep1 setData={setData} setStep={setStep} />
     ) : (
-      <RegisterStep2 />
+      <RegisterStep2 data={data} />
     );
   const footer = (
     <div className=" text-neutral-400 text-center mb-4">
@@ -67,6 +71,8 @@ function RegisterStep1({
   setData: Dispatch<SetStateAction<{ name: string; email: string }>>;
   setStep: Dispatch<SetStateAction<number>>;
 }) {
+  const [error, setError] = useState("");
+
   const form = useForm<z.infer<typeof registerStep1Schema>>({
     resolver: zodResolver(registerStep1Schema),
     defaultValues: {
@@ -75,9 +81,20 @@ function RegisterStep1({
     },
   });
 
-  function onSubmit(values: z.infer<typeof registerStep1Schema>) {
-    setData(values);
-    setStep(2);
+  async function onSubmit(values: z.infer<typeof registerStep1Schema>) {
+    try {
+      const { data } = await axios.post("/api/auth/register?step=1", values);
+      if (data.success) {
+        setData(values);
+        setStep(2);
+      }
+    } catch (error: any) {
+      if (error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError("Somthing went wrong , Please try  again later .");
+      }
+    }
   }
   const { isSubmitting } = form.formState;
   return (
@@ -86,6 +103,13 @@ function RegisterStep1({
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4 px-0 md:px-12"
       >
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <FormField
           control={form.control}
           name="name"
@@ -124,7 +148,9 @@ function RegisterStep1({
   );
 }
 
-function RegisterStep2() {
+function RegisterStep2({ data }: { data: { name: string; email: string } }) {
+  const [error, setError] = useState("");
+  const registerModal = useRegisterModal();
   const form = useForm<z.infer<typeof registerStep2Schema>>({
     resolver: zodResolver(registerStep2Schema),
     defaultValues: {
@@ -133,8 +159,23 @@ function RegisterStep2() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof registerStep2Schema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof registerStep2Schema>) {
+    try {
+      const { data: response } = await axios.post("/api/auth/register?step=2", {
+        ...data,
+        ...values,
+      });
+
+      if (response.success) {
+        registerModal.onClose();
+      }
+    } catch (error: any) {
+      if (error.response.data.error) {
+        setError(error.response.data.error);
+      } else {
+        setError("Somthing went wrong , Please try  again later .");
+      }
+    }
   }
   const { isSubmitting } = form.formState;
   return (
@@ -143,6 +184,13 @@ function RegisterStep2() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4 px-0 md:px-12"
       >
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <FormField
           control={form.control}
           name="username"
