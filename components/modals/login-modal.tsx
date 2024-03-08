@@ -1,6 +1,6 @@
+import React, { useCallback, useState } from "react";
 import Modal from "../ui/modal";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import useLoginModal from "@/hooks/useLoginModal";
 import {
   Form,
   FormControl,
@@ -11,18 +11,21 @@ import {
 import { Input } from "../ui/input";
 import Button from "../ui/button";
 import { useForm } from "react-hook-form";
-import { useCallback, useState } from "react";
-import useRegisterModal from "@/hooks/useRegisterModal";
-import useLoginModal from "@/hooks/useLoginModal";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/lib/validation";
+import useRegisterModal from "@/hooks/useRegisterModal";
 import axios from "axios";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
+import { signIn } from "next-auth/react";
 
 export default function LoginModal() {
-  const registerModal = useRegisterModal();
-  const loginModal = useLoginModal();
   const [error, setError] = useState("");
+
+  const loginModal = useLoginModal();
+  const registerModal = useRegisterModal();
+
   const onToggle = useCallback(() => {
     loginModal.onClose();
     registerModal.onOpen();
@@ -40,24 +43,23 @@ export default function LoginModal() {
     try {
       const { data } = await axios.post("/api/auth/login", values);
       if (data.success) {
+        signIn("credentials", values);
         loginModal.onClose();
       }
     } catch (error: any) {
       if (error.response.data.error) {
         setError(error.response.data.error);
       } else {
-        setError("Somthing went wrong , Please try  again later .");
+        setError("Something went wrong. Please try again later.");
       }
     }
   }
+
   const { isSubmitting } = form.formState;
 
-  const body = (
+  const bodyContent = (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 px-0 md:px-12"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-12">
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -89,28 +91,30 @@ export default function LoginModal() {
             </FormItem>
           )}
         />
-        <div className="pt-3">
-          <Button
-            label={"Login"}
-            type="submit"
-            secondary
-            fullWidth
-            disabled={isSubmitting}
-          />
-        </div>
+        <Button
+          label={"Login"}
+          type="submit"
+          secondary
+          fullWidth
+          large
+          disabled={isSubmitting}
+        />
       </form>
     </Form>
   );
 
   const footer = (
-    <div className=" text-neutral-400 text-center mb-4 flex justify-center">
-      <p>First time using X?</p>
-      <span
-        className="text-white cursor-pointer hover:underline pl-2"
-        onClick={onToggle}
-      >
-        Create an account
-      </span>
+    <div className="text-neutral-400 text-center mb-4">
+      <p>
+        First time using X?
+        <span
+          className="text-white cursor-pointer hover:underline"
+          onClick={onToggle}
+        >
+          {" "}
+          Create an account
+        </span>
+      </p>
     </div>
   );
 
@@ -118,7 +122,7 @@ export default function LoginModal() {
     <Modal
       isOpen={loginModal.isOpen}
       onClose={loginModal.onClose}
-      body={body}
+      body={bodyContent}
       footer={footer}
     />
   );

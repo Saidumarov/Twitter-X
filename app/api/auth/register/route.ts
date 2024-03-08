@@ -1,16 +1,16 @@
-import { ConnetToDatabase } from "@/lib/mongoose";
+import User from "@/database/user.model";
+import { connectToDatabase } from "@/lib/mognoose";
 import { NextResponse } from "next/server";
-import User from "@/databases/user-model";
 import { hash } from "bcrypt";
+
 export async function POST(req: Request) {
   try {
-    await ConnetToDatabase();
+    await connectToDatabase();
     const { searchParams } = new URL(req.url);
     const step = searchParams.get("step");
 
     if (step === "1") {
       const { email } = await req.json();
-
       const isExistingUser = await User.findOne({ email });
 
       if (isExistingUser) {
@@ -19,24 +19,30 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
+
       return NextResponse.json({ success: true });
     } else if (step === "2") {
-      const { email, username, password, name } = await req.json();
-      const isExistingUsername = await User.findOne({ username });
-      if (isExistingUsername) {
+      const { email, username, name, password } = await req.json();
+
+      const isExistinUsername = await User.findOne({ username });
+
+      if (isExistinUsername) {
         return NextResponse.json(
           { error: "Username already exists" },
           { status: 400 }
         );
       }
+
       const hashedPassword = await hash(password, 10);
+
       const user = await User.create({
         email,
         username,
-        password: hashedPassword,
         name,
+        password: hashedPassword,
       });
-      return NextResponse.json({ success: true });
+
+      return NextResponse.json({ success: true, user });
     }
   } catch (error) {
     const result = error as Error;

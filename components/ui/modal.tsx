@@ -1,40 +1,47 @@
 import { ReactElement } from "react";
-import { Dialog, DialogContent } from "./dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./dialog";
 import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ModalProps {
-  title?: string;
   isOpen?: boolean;
   onClose?: () => void;
   body?: ReactElement;
   footer?: ReactElement;
   step?: number;
   totalSteps?: number;
+  isEditing?: boolean;
 }
 
 export default function Modal({
-  isOpen,
-  onClose,
   body,
   footer,
+  isOpen,
+  onClose,
   step,
   totalSteps,
+  isEditing,
 }: ModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-black">
-        <div className=" flex items-center gap-6">
-          <button className=" p-1 border-stone-800 border rounded-sm text-white hover:opacity-70 transition w-fit">
+      <DialogContent
+        className={cn(
+          "bg-black p-1",
+          isEditing && "h-[80vh] overflow-x-hidden overflow-y-auto"
+        )}
+      >
+        <div className="flex items-center gap-6">
+          <button className="p-1 border-0 text-white hover:opacity-70 transition w-fit">
             <X size={28} onClick={onClose} />
           </button>
           {step && totalSteps && (
-            <div className=" text-xl font-bold">
+            <div className="text-xl font-bold">
               Step {step} of {totalSteps}
             </div>
           )}
         </div>
         <div className="mt-4">{body}</div>
-        {footer && <div> {footer} </div>}
+        {footer && <div>{footer}</div>}
       </DialogContent>
     </Dialog>
   );

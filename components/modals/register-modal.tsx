@@ -1,11 +1,12 @@
 "use client";
 
+import useRegisterModal from "@/hooks/useRegisterModal";
 import Modal from "../ui/modal";
 import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
+import { registerStep1Schema, registerStep2Schema } from "@/lib/validation";
 import {
   Form,
   FormControl,
@@ -15,33 +16,38 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import Button from "../ui/button";
-import useRegisterModal from "@/hooks/useRegisterModal";
 import useLoginModal from "@/hooks/useLoginModal";
-import { registerStep1Schema, registerStep2Schema } from "@/lib/validation";
+import axios from "axios";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { AlertCircle } from "lucide-react";
-function RegisterModal() {
+import error from "next/error";
+import { signIn } from "next-auth/react";
+
+export default function RegisterModal() {
   const [step, setStep] = useState(1);
+  const [data, setData] = useState({ name: "", email: "" });
+
   const registerModal = useRegisterModal();
   const loginModal = useLoginModal();
-  const [data, setData] = useState({ name: "", email: "" });
 
   const onToggle = useCallback(() => {
     registerModal.onClose();
     loginModal.onOpen();
   }, [loginModal, registerModal]);
-  const body =
+
+  const bodyContent =
     step === 1 ? (
       <RegisterStep1 setData={setData} setStep={setStep} />
     ) : (
       <RegisterStep2 data={data} />
     );
+
   const footer = (
-    <div className=" text-neutral-400 text-center mb-4">
+    <div className="text-neutral-400 text-center mb-4">
       <p>
-        Already have an account?
+        Already have an account?{" "}
         <span
-          className=" text-white cursor-pointer hover:underline pl-2"
+          className="text-white cursor-pointer hover:underline"
           onClick={onToggle}
         >
           Sign in
@@ -52,7 +58,7 @@ function RegisterModal() {
 
   return (
     <Modal
-      body={body}
+      body={bodyContent}
       footer={footer}
       isOpen={registerModal.isOpen}
       onClose={registerModal.onClose}
@@ -61,8 +67,6 @@ function RegisterModal() {
     />
   );
 }
-
-export default RegisterModal;
 
 function RegisterStep1({
   setData,
@@ -92,17 +96,16 @@ function RegisterStep1({
       if (error.response.data.error) {
         setError(error.response.data.error);
       } else {
-        setError("Somthing went wrong , Please try  again later .");
+        setError("Something went wrong. Please try again later.");
       }
     }
   }
+
   const { isSubmitting } = form.formState;
+
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 px-0 md:px-12"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-12">
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -134,15 +137,14 @@ function RegisterStep1({
             </FormItem>
           )}
         />
-        <div className="pt-3">
-          <Button
-            label={"Next"}
-            type="submit"
-            secondary
-            fullWidth
-            disabled={isSubmitting}
-          />
-        </div>
+        <Button
+          label={"Next"}
+          type="submit"
+          secondary
+          fullWidth
+          large
+          disabled={isSubmitting}
+        />
       </form>
     </Form>
   );
@@ -151,6 +153,7 @@ function RegisterStep1({
 function RegisterStep2({ data }: { data: { name: string; email: string } }) {
   const [error, setError] = useState("");
   const registerModal = useRegisterModal();
+
   const form = useForm<z.infer<typeof registerStep2Schema>>({
     resolver: zodResolver(registerStep2Schema),
     defaultValues: {
@@ -165,25 +168,26 @@ function RegisterStep2({ data }: { data: { name: string; email: string } }) {
         ...data,
         ...values,
       });
-
       if (response.success) {
+        signIn("credentials", {
+          email: data.email,
+          password: values.password,
+        });
         registerModal.onClose();
       }
     } catch (error: any) {
       if (error.response.data.error) {
         setError(error.response.data.error);
       } else {
-        setError("Somthing went wrong , Please try  again later .");
+        setError("Something went wrong. Please try again later.");
       }
     }
   }
+
   const { isSubmitting } = form.formState;
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 px-0 md:px-12"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-12">
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -215,15 +219,14 @@ function RegisterStep2({ data }: { data: { name: string; email: string } }) {
             </FormItem>
           )}
         />
-        <div className="pt-3">
-          <Button
-            label={"Register"}
-            type="submit"
-            secondary
-            fullWidth
-            disabled={isSubmitting}
-          />
-        </div>
+        <Button
+          label={"Register"}
+          type="submit"
+          secondary
+          fullWidth
+          large
+          disabled={isSubmitting}
+        />
       </form>
     </Form>
   );
