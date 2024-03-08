@@ -43,9 +43,11 @@ export default function Auth() {
           <div className="block md:hidden">
             <Image src={"/images/x.svg"} alt="X" width={50} height={50} />
           </div>
-          <h1 className="text-6xl font-bold">Happening now</h1>
+          <h1 className=" text-4xl md:text-6xl font-bold">Happening now</h1>
           <div className="w-full md:w-[60%]">
-            <h2 className="font-bold text-3xl mb-4">Join today.</h2>
+            <h2 className=" font-bold text-2xl md:text-3xl mb-4">
+              Join today.
+            </h2>
             <div className="flex flex-col space-y-2">
               <Button
                 onClick={() => signIn("google")}
